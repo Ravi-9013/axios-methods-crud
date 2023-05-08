@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+  <title>Item Lister</title>
+</head>
+<body>
+  <div class="container">
+   <div id="main" class="card card-body">
+        <form id="addForm" class="form-inline mb-3">
+          <label for="name" >Name</label>
+      <input type="text" class="form-control mr-2" id="name" >
+      <form class="form-inline mb-3">
+        <label for="number" >Phone</label>
+    <input type="tel" class="form-control mr-2" id="number" >
+    <form class="form-inline mb-3">
+      <label for="email" >Email</label>
+  <input type="email" class="form-control mr-2" id="email" >
+      <input type="submit" class="btn btn-dark" value="Submit">
+    </form>
+    <h2 class="title">Items</h2>
+    <ul id="items" class="list-group">
+      
+    </ul>
+   </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+  <script>
+  // varoius event and global variable
+  const form =document.querySelector('#addForm')
+  const list = document.querySelector("#items")
+  const li_select=document.querySelector("#items")
+  li_select.addEventListener('click',removeList)
+  // li_select.addEventListener('click',removeList)
+  form.addEventListener('submit',addData)
+  document.addEventListener('DOMContentLoaded',refresh) // attach a function when content is loaded or refreshed
+
+    function refresh() {
+      axios.get('https://crudcrud.com/api/df3e5f982f464640aa1e255222f12fc6/appontmentData')
+      .then(response => {
+        response.data.forEach(element => {
+         let createdList = createListBtn(element)
+         li_select.append(createdList)
+        })
+      })
+      .catch(err=>console.log(err))
+    }
+
+  // function which fetch input data  
+  function fetchData(){
+  let name = document.getElementById('name').value
+  let number = document.getElementById('number').value
+  let email = document.getElementById('email').value 
+  return {'name':name,'number':number,'email':email}
+  }
+
+  // add data to crud website and post it on screen
+  function addData(e){
+    e.preventDefault()
+    let data = fetchData()
+    axios
+    .post('https://crudcrud.com/api/df3e5f982f464640aa1e255222f12fc6/appontmentData',data)
+    .then(response=>{
+      data._id=response.data._id//(response.data._id) gets the id generated in crud website 
+      let createdList = createListBtn(data)
+      li_select.append(createdList)
+    })
+    .catch(err=>{
+      console.log(err)
+    })
+  }
+
+
+  // create loaded list with buttons
+  function createListBtn(data){
+    let li = document.createElement('list')
+    li.id=data._id
+    li.innerText=data.name+" ||  "+data.number+" ||  "+ 
+    data.email
+    let deleteBtn = document.createElement('button')
+    deleteBtn.className="btn btn-danger delete float-right"
+    deleteBtn.innerText='Delete'
+    let editBtn = document.createElement('button')
+    editBtn.className="btn btn-danger edit float-right"
+    editBtn.innerText='Edit'
+    li.append(deleteBtn)
+    li.append(editBtn)
+    return li
+  } 
+
+
+  // remove list
+  function removeList(e){
+    if(e.target.classList.contains('delete')){
+      if(confirm('Are You Sure')){
+        let id = e.target.parentElement.id
+        e.target.parentElement.remove()
+        removeCrudData(id)
+      }
+      }
+      if(e.target.classList.contains('edit')) {
+        document.getElementById('name').focus()
+        if(confirm('Press Cancel if form is not edited and set the value first ')){
+          updateCrudData(e.target.parentElement.id,fetchData())
+      setTimeout (()=>document.location.reload(),1000)
+        }
+     
+      }
+}
+  //remove data from crud
+  function removeCrudData(id){
+    axios.delete(`https://crudcrud.com/api/df3e5f982f464640aa1e255222f12fc6/appontmentData/${id}`)
+    .then(response=> {
+    })
+  }
+
+  //update data of crud
+  function updateCrudData(id,fun){
+    axios.put(`https://crudcrud.com/api/df3e5f982f464640aa1e255222f12fc6/appontmentData/${id}` ,fun)
+    .then(response=> {
+      console.log(response)
+    })
+  }
+ 
+  </script>
+</body>
+</html>
